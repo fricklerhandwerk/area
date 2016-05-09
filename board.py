@@ -11,11 +11,16 @@ class Board():
 		"""
 		create random board with given parameters
 		"""
+
+		assert len(colors)	> 1, "colors list too short, length must be > 1"
+		assert width      	> 0, "width too small, must be > 0"
+		assert height     	> 0, "height too small, must be > 0"
+
 		self.width 	= width
 		self.height	= height
 		self.colors	= colors
-		self.area =	[[random.randint(0,len(self.colors)-1) for x in range(width)] \
-		           	for x in range(height)]
+		self.area  	= [[random.randint(0,len(colors)-1) for x in range(width)] \
+		           		for x in range(height)]
 
 	def __getitem__(self,key):
 		x,y	= key
@@ -32,18 +37,26 @@ class Board():
 		"""
 		set a starting point at `x`
 		"""
+
+		assert x[0] in xrange(self.height), "height coordinate out of bound"
+		assert x[1] in xrange(self.width), "width coordinate out of bound"
+
 		for i in self.get_neighbors(x):
 			# set immediate neighbors to same color
 			self[i] = self[x]
 			for j in filter(lambda k: k != x,self.get_neighbors(i)):
 				# set 2nd-grade neighbors to different color
 				if self[j] == self[x]:
-					self[j] = (self[j] + 1) % (len(self.colors)-1)
+					self[j] = (self[j] + 1) % len(self.colors)
 
 	def get_neighbors(self,x):
 		"""
 		return coordinates of neighbors of `x` as list
 		"""
+
+		assert x[0] in xrange(self.height)
+		assert x[1] in xrange(self.width)
+
 		x,y = x
 		dirs = [[1, 0], [0, 1], [-1, 0], [0, -1]]
 		return [	[x+a,y+b] for a,b in dirs if \
@@ -53,6 +66,10 @@ class Board():
 		"""
 		return coordinates of area of `x` and its border
 		"""
+
+		assert x[0] in xrange(self.height)
+		assert x[1] in xrange(self.width)
+
 		# TODO: optimize by saving previous states
 		todo = [x]
 		area = []
@@ -68,11 +85,11 @@ class Board():
 			         	self[k] != self[x], \
 			         	self.get_neighbors(y))
 
+			todo = todo[1:]
 			todo +=	filter( \
 			       	lambda k: k not in area and \
 			       	self[k] == self[x], \
 			       	self.get_neighbors(y))
-			todo = todo[1:]
 
 		return area,border
 
@@ -80,6 +97,11 @@ class Board():
 		"""
 		set area around `x` to color `c`
 		"""
+
+		assert x[0] in xrange(self.height)
+		assert x[1] in xrange(self.width)
+		assert c in xrange(len(self.colors))
+
 		a,_ = self.get_area(x)
 		for i in a:
 			self[i] = c
@@ -88,6 +110,10 @@ class Board():
 		"""
 		return area of `x` as `True`, border as `False`, `None` else
 		"""
+
+		assert x[0] in xrange(self.height)
+		assert x[1] in xrange(self.width)
+
 		area = copy.deepcopy(self)
 		a,b = area.get_area(x)
 		for i in range(area.height):
@@ -106,6 +132,11 @@ class Board():
 		"""
 		set area around `x` to color `c`
 		"""
+
+		assert x[0] in xrange(self.height)
+		assert x[1] in xrange(self.width)
+		assert c in xrange(len(self.colors))
+
 		ref    	= self[x]
 		self[x]	= c
 		for i in self.get_neighbors(x):
