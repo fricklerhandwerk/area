@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import random, board, player
+import random, board
 
 class Game():
 	"""
@@ -25,8 +25,8 @@ class Game():
 		# create players
 		# TODO: generalize to distribute arbitrary number of players evenly
 		self.players = []
-		self.players.append(player.Player("Player 1",[0,0]))
-		self.players.append(player.Player("Player 2",[height-1,width-1]))
+		self.players.append(Player("Player 1",[0,0],self))
+		self.players.append(Player("Player 2",[height-1,width-1],self))
 
 		# set up players
 		self.set_players()
@@ -59,9 +59,9 @@ class Game():
 		for p in self.players:
 			# get other players' colors in use
 			used = self.colors_used()
-			used.remove(self[p.pos])
+			used.remove(p.color)
 			# set different color if already used
-			if self[p.pos] in used:
+			if p.color in used:
 				# get all that is left
 				rest = [x for x in self.colors if x not in used]
 				# set to one of unused colors
@@ -83,10 +83,11 @@ class Game():
 		# chosen color is not used by other players
 		if	p == self.turn and \
 		  	c in self.colors_available(p):
+		  	p = self.players[p]
 		  	# set new color
-		  	self.area.set_color(self.players[p].pos,c)
+		  	self.area.set_color(p.pos,c)
 		  	# update score
-		  	self.players[p].score = len(self.area.get_area(self.players[p].pos)[0])
+		  	p.score = len(self.area.get_area(p.pos)[0])
 		  	# go to next turn
 		  	self.turn = (self.turn + 1) % len(self.players)
 		  	return True
@@ -114,7 +115,7 @@ class Game():
 		return list of colors used by players
 		"""
 		# must be a list to deal with duplicates
-		return [self[x.pos] for x in self.players]
+		return [x.color for x in self.players]
 
 	def winner(self):
 		"""
@@ -122,6 +123,33 @@ class Game():
 		"""
 		return next((p for p in self.players if p.score >= self.area.height*self.area.width/2.0),None)
 
+class Player():
+	"""
+	Area player model
+	"""
+
+	def __init__(self,name,pos,game):
+		"""
+		create player
+		"""
+
+		self.name = name
+		self.pos = pos
+		self.score = 0
+		self.game = game	# game player belongs to
+
+	@property
+	def color(self):
+		"""
+		get player's color in given game
+		"""
+		return self.game[self.pos]
+
+	def __str__(self):
+		return ' '.join(map(str,[self.name,self.pos,self.score]))
+
+	def __repr__(self):
+		return ','.join(map(repr,[self.name,self.pos,self.score]))
 
 # g = Game(5,10)
 # print g
