@@ -87,6 +87,7 @@ class Game():
 		  	# set new color
 		  	self.area.set_color(p.pos,c)
 		  	# update score
+		  	# TODO: compute score based on *enclosed* area
 		  	p.score = len(self.area.get_area(p.pos)[0])
 		  	# go to next turn
 		  	self.turn = (self.turn + 1) % len(self.players)
