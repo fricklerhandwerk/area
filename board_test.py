@@ -100,7 +100,31 @@ def test_get_area_count(p1,p2,x,y,l):
        	integers(min_value=2, max_value=100),\
        	integers(min_value=2, max_value=100),\
        	lists(integers(),min_size=2,max_size=10))
-def test_get_area_count(p1,p2,c,x,y,l):
+def test_get_area_size(p1,p2,c,x,y,l):
+	"""
+	area/border display has same size as area/border coordinates
+	"""
+
+	p = [p1,p2]
+	test = board.Board(x,y,l)
+
+	try:
+		a,b = test.get_area(p)
+		comp = test.get_complete_area(p)
+	except AssertionError:
+		assert True
+	else:
+		c = filter(lambda x: x is True,concat(comp.area))
+		assert len(c) == len(a)
+		d = filter(lambda x: x is False,concat(comp.area))
+		assert len(d) == len(b)
+
+
+@given(	integers(),integers(),integers(),\
+       	integers(min_value=2, max_value=100),\
+       	integers(min_value=2, max_value=100),\
+       	lists(integers(),min_size=2,max_size=10))
+def test_get_area_size(p1,p2,c,x,y,l):
 	"""
 	coloring an area results in area with at least same size
 	"""
@@ -109,6 +133,7 @@ def test_get_area_count(p1,p2,c,x,y,l):
 	a = board.Board(x,y,l)
 	try:
 		r1,_ = a.get_area(p)
+
 		a.set_color(p,c)
 	except AssertionError:
 		assert True

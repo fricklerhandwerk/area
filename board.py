@@ -1,25 +1,24 @@
 # -*- coding: utf-8 -*-
 import random,copy
 from tabulate import tabulate
-from IPython import embed
 
 class Board():
 	"""
 	Area board model
 	"""
-	def __init__(self,width,height,colors):
+	def __init__(self,height,width,colors):
 		"""
 		create random board with given parameters
 		"""
 
 		assert len(colors)	> 1, "colors list too short, length must be > 1"
-		assert width      	> 0, "width too small, must be > 0"
 		assert height     	> 0, "height too small, must be > 0"
+		assert width      	> 0, "width too small, must be > 0"
 
-		self.width 	= width
 		self.height	= height
+		self.width 	= width
 		self.colors	= colors
-		self.area  	= [[random.randint(0,len(colors)-1) for x in range(width)] \
+		self.area  	= [[random.randrange(len(colors)) for x in range(width)] \
 		           		for x in range(height)]
 
 	def __getitem__(self,key):
@@ -87,7 +86,7 @@ class Board():
 
 			todo = todo[1:]
 			todo +=	filter( \
-			       	lambda k: k not in area and \
+			       	lambda k: k not in area and k not in todo and \
 			       	self[k] == self[x], \
 			       	self.get_neighbors(y))
 
@@ -98,9 +97,9 @@ class Board():
 		set area around `x` to color `c`
 		"""
 
-		assert x[0] in xrange(self.height)
-		assert x[1] in xrange(self.width)
-		assert c in xrange(len(self.colors))
+		assert x[0]	in xrange(self.height)
+		assert x[1]	in xrange(self.width)
+		assert c   	in xrange(len(self.colors))
 
 		a,_ = self.get_area(x)
 		for i in a:
@@ -142,31 +141,3 @@ class Board():
 		for i in self.get_neighbors(x):
 			if self[i] == ref:
 				self.set_color_recursive(i,c)
-
-def main():
-	"""
-	just for testing
-	"""
-
-	HEIGHT = 5
-	WIDTH = 10
-	colors = ["red","green","blue","yellow","magenta"]
-
-	a = Board(WIDTH,HEIGHT,colors)
-	print a
-	print a.get_complete_area([0,0])
-
-	a.set_start([0,0])
-	print a
-	print a.get_complete_area([0,0])
-
-	embed()
-
-	for i in range(10):
-		print i
-		a.set_color([0,0],(a[0,0]+1) % 5)
-		print a
-		print a.get_complete_area([0,0])
-
-if __name__ == '__main__':
-	main()
