@@ -168,14 +168,3 @@ class Player():
 		h = self.game.area.height
 		a = self.score
 		return a/(w*h/2.0)
-
-
-# g = Game(5,10)
-# print g
-# while(not g.winner()):
-#	p = g.turn
-#	c = random.choice(g.colors_available(p))
-#	print "%s chose %s"%(g.players[p],c)
-#	g.command(g.turn,c)
-#	print g
-# print "Winner:",g.winner()
