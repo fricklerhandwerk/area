@@ -91,7 +91,7 @@ class Game():
 		  	# TODO: compute score based on *enclosed* area
 		  	p.score = len(self.area.get_area(p.pos)[0])
 		  	# go to next turn
-		  	self.turn = (self.turn + 1) % len(self.players)
+		  	self.next_turn()
 		  	# check if game continues or ends
 		  	if self.winner():
 		  		pub.sendMessage("winner",winner=self.winner())
@@ -105,14 +105,19 @@ class Game():
 		if p == self.turn:
 			used = set(self.colors_used())
 			# exclude colors not bordering
-			# WARNING:	if enabled, situations can occur where player
-			#         	is surrounded by unavailable colors and cannot do anything
-			# TODO:   	circumvent by offering non-bordering colors in this case
-			# _,border = self.area.get_area(self.players[p].pos)
-			# bordering = set([self[x] for x in border])
-			return list(set(self.colors) - used)
+			_,border = self.area.get_area(self.players[p].pos)
+			bordering = set([self[x] for x in border])
+			available = list(set(self.colors) & bordering - used)
+			if available:
+				return available
+			else:
+				# if none left, return all that are not used
+				return list(set(self.colors) - used)
 		else:
 			return []
+
+	def next_turn(self):
+		self.turn = (self.turn + 1) % len(self.players)
 
 	def colors_used(self):
 		"""
