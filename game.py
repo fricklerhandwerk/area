@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import random, board
+from wx.lib.pubsub import pub
 
 class Game():
 	"""
@@ -91,9 +92,11 @@ class Game():
 		  	p.score = len(self.area.get_area(p.pos)[0])
 		  	# go to next turn
 		  	self.turn = (self.turn + 1) % len(self.players)
-		  	return True
-		else:
-			return False
+		  	# check if game continues or ends
+		  	if self.winner():
+		  		pub.sendMessage("winner",winner=self.winner())
+		  	else:
+		  		pub.sendMessage("next turn")
 
 	def colors_available(self,p):
 		"""
@@ -122,7 +125,7 @@ class Game():
 		"""
 		return winning player or None
 		"""
-		return next((p for p in self.players if p.score >= self.area.height*self.area.width/2.0),None)
+		return next((p for p in self.players if p.score_relative >= 1),None)
 
 class Player():
 	"""
@@ -151,6 +154,16 @@ class Player():
 
 	def __repr__(self):
 		return ','.join(map(repr,[self.name,self.pos,self.score]))
+	@property
+	def score_relative(self):
+		"""
+		get score relative to half the board size
+		"""
+		w = self.game.area.width
+		h = self.game.area.height
+		a = self.score
+		return a/(w*h/2.0)
+
 
 # g = Game(5,10)
 # print g

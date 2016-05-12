@@ -49,35 +49,26 @@ def test_start_score(x,y,l):
 @given(	integers(min_value=5,max_value=20),\
        	integers(min_value=5,max_value=20),\
        	lists(integers(),min_size=3, max_size=100),\
-       	integers(min_value=0,max_value=1),randoms())
-def test_valid_turn(x,y,l,p,r):
+       	integers(min_value=0,max_value=1),integers(),randoms())
+def test_valid_turn(x,y,l,p,c,r):
 	"""
-	trying invalid turn (wrong player or color) does not work
+	trying invalid turn (wrong player or color) does not proceed game,
+	but valid one does
 	"""
 	g = game.Game(x,y,colors=l)
-	print g.turn
-	if p != g.turn:
-		assert g.command(p,0) is False
-	else:
-		assert g.command(p,g.colors_available(p)[0]) is True
+	turn = g.turn
 
-@given(	integers(min_value=5,max_value=20),\
-       	integers(min_value=5,max_value=20),\
-       	lists(integers(),min_size=3, max_size=100),\
-       	integers(),randoms())
-def test_valid_color(x,y,l,c,r):
-	"""
-	trying invalid turn (wrong player or color) does not work
-	"""
-	g = game.Game(x,y,colors=l)
 	if c in g.colors:
-		if c in g.colors_available(g.turn):
-			assert g.command(g.turn,c) is True
+		if c in g.colors_available(g.turn) and p == g.turn:
+			g.command(p,c)
+			assert turn != g.turn, "game does not proceed on valid turn"
 		else:
-			assert g.command(g.turn,c) is False
+			g.command(p,c)
+			assert turn == g.turn, "game proceeds on invalid turn"
 	else:
 		try:
-			g.command(g.turn,c)
+			g.command(p,c)
+			assert False, "game does not catch invalid colors"
 		except AssertionError:
 			assert True
 
