@@ -47,16 +47,14 @@ def test_set_start_color(p1,p2,x,y,l):
 	"""
 
 	p = (p1,p2)
-	a = board.Board(x,y,l)
+	b = board.Board(x,y,l)
 	try:
-		a.set_start(p)
+		area,border = b.set_start(p)
 	except AssertionError:
 		assert True
 	else:
-		n = a.get_neighbors(p)
-		assert all(map(lambda x: a[x] == a[p],n))
-		nn = uniq(filter(lambda x: x != p,concatMap(a.get_neighbors,n)))
-		assert all(map(lambda x: a[x] != a[p],nn))
+		assert all(map(lambda x: b[x] == b[p],area))
+		assert all(map(lambda x: b[x] != b[p],border))
 
 @given(	integers(),integers(),\
        	integers(min_value=1, max_value=100),\
@@ -68,9 +66,9 @@ def test_get_neighbors_count(p1,p2,x,y,l):
 	"""
 
 	p = (p1,p2)
-	a = board.Board(x,y,l)
+	b = board.Board(x,y,l)
 	try:
-		n = a.get_neighbors(p)
+		n = b.get_neighbors(p)
 	except AssertionError:
 		assert True
 	else:
@@ -82,19 +80,18 @@ def test_get_neighbors_count(p1,p2,x,y,l):
        	lists(integers(),min_size=2,max_size=10))
 def test_get_area_count(p1,p2,x,y,l):
 	"""
-	area around cell is not larger than whole board
+	area and border around cell is not larger than whole board
 	"""
 
 	p = (p1,p2)
-	a = board.Board(x,y,l)
+	b = board.Board(x,y,l)
 	try:
-		a.set_start(p)
-		j,k = a.get_area_with_border(p)
+		area, border = b.set_start(p)
 	except AssertionError:
 		assert True
 	else:
-		assert len(j) <= x*y
-		assert len(j) > 0
+		assert len(area) + len(border) <= x*y
+		assert len(area) > 0
 
 @given(	integers(),integers(),integers(),\
        	integers(min_value=2, max_value=100),\
@@ -106,86 +103,57 @@ def test_get_area_size(p1,p2,c,x,y,l):
 	"""
 
 	p = (p1,p2)
-	test = board.Board(x,y,l)
+	b = board.Board(x,y,l)
 
 	try:
-		a,b = test.get_area_with_border(p)
-		comp = test.get_complete_area(p)
+		area,border = b.set_start(p)
+		comp = b.get_complete_area(p)
 	except AssertionError:
 		assert True
 	else:
 		c = filter(lambda x: x is True,concat(comp.area))
-		assert len(c) == len(a)
+		assert len(c) == len(area)
 		d = filter(lambda x: x is False,concat(comp.area))
-		assert len(d) == len(b)
+		assert len(d) == len(border)
 
 
 @given(	integers(),integers(),integers(),\
        	integers(min_value=2, max_value=100),\
        	integers(min_value=2, max_value=100),\
        	lists(integers(),min_size=2,max_size=10))
-def test_get_area_leastsize(p1,p2,c,x,y,l):
+def test_get_area_after_coloring(p1,p2,c,x,y,l):
 	"""
 	coloring an area results in area with at least same size
 	"""
 
 	p = (p1,p2)
-	a = board.Board(x,y,l)
+	b = board.Board(x,y,l)
 	try:
-		r1 = a.get_area(p)
-
-		a.set_color(p,c)
+		area1,border1 = b.set_start(p)
+		b.set_color(area1,c)
 	except AssertionError:
 		assert True
 	else:
-		r2 = a.get_area(p)
-		assert len(r2) >= len(r1)
+		area2,border2 = b.get_area(area1,border1)
+		assert len(area2) >= len(area1)
 
 
-@given(	integers(),integers(),integers(),\
+@given(	integers(),integers(),\
        	integers(min_value=2, max_value=100),\
        	integers(min_value=2, max_value=100),\
        	lists(integers(),min_size=2,max_size=10))
-def test_get_extended_area_leastsize(p1,p2,c,x,y,l):
+def test_get_area_twice(p1,p2,x,y,l):
 	"""
-	extending an area makes area of at least same size
-	"""
-
-	p = (p1,p2)
-	a = board.Board(x,y,l)
-	try:
-		r1,b1 = a.get_area_with_border(p)
-		a.set_color(p,c)
-	except AssertionError:
-		assert True
-	else:
-		r2,_ = a.get_extended_area_with_border(r1,b1)
-		assert len(r2) >= len(r1)
-
-@given(	integers(),integers(),integers(),\
-       	integers(min_value=2, max_value=100),\
-       	integers(min_value=2, max_value=100),\
-       	lists(integers(),min_size=2,max_size=10))
-def test_get_extended_area_size(p1,p2,c,x,y,l):
-	"""
-	area/border display has same size as extended area/border coordinates
+	getting an area twice results in same area
 	"""
 
 	p = (p1,p2)
-	test = board.Board(x,y,l)
-
+	b = board.Board(x,y,l)
 	try:
-		i,j = test.get_area_with_border(p)
-		test.set_color(p,c)
-		a,b = test.get_extended_area_with_border(i,j)
-		comp = test.get_complete_area(p)
+		area1,border1 = b.set_start(p)
+		area2,border2 = b.get_area(area1,border1)
 	except AssertionError:
 		assert True
 	else:
-		print a
-		print b
-		print comp
-		c = filter(lambda x: x is True,concat(comp.area))
-		assert len(c) == len(a)
-		d = filter(lambda x: x is False,concat(comp.area))
-		assert len(d) == len(b)
+		assert area1 == area2
+		assert set(border1) == set(border2)

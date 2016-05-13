@@ -34,7 +34,7 @@ class Board():
 
 	def set_start(self,x):
 		"""
-		set a starting point at `x`
+		set a starting point at `x`, return starting area
 		"""
 
 		assert x[0] in xrange(self.height), "height coordinate out of bound"
@@ -50,6 +50,7 @@ class Board():
 				# set 2nd-grade neighbors to different color
 				if self[j] == color:
 					self[j] = (self[j] + 1) % colors
+		return self.get_area({x},self.get_neighbors(x))
 
 	def get_neighbors(self,x):
 		"""
@@ -65,40 +66,17 @@ class Board():
 		return [(x+a,y+b) for a,b in dirs if \
 			all([x+a < self.height,y+b < self.width,x+a >= 0,y+b >= 0])]
 
-	def get_area_with_border(self,x):
+	def get_area(self,a,b):
 		"""
-		return coordinates of area of `x` as set and its border as list
-		"""
-
-		assert x[0] in xrange(self.height)
-		assert x[1] in xrange(self.width)
-
-		# TODO: optimize by saving previous states
-		color = self[x]
-		todo = set([x])
-		area = set()
-		border = []
-
-		while todo:
-			y = todo.pop()
-
-			area.add(y)
-
-			border +=	filter( \
-			         	lambda k: k not in border and \
-			         	self[k] != color, \
-			         	self.get_neighbors(y))
-
-			todo |=	set(filter( \
-			       	lambda k: k not in area and \
-			       	self[k] == color, \
-			       	self.get_neighbors(y)))
-
-		return area,border
-
-	def get_extended_area_with_border(self,a,b):
-		"""
-		return coordinates of superset of `a` and its border, using border `b`
+		Args:
+			a	set representing existing area
+			b	list representing border of a
+		Returns:
+			area  	set representing area that contains a
+			border	list representing border of area
+		NOTE:
+			to get area around single cell, call
+				get_area({x},self.get_neighbors(x))
 		"""
 
 		color = self[next(iter(a))] # pick element from `a` nondestructively
@@ -106,7 +84,6 @@ class Board():
 		area = a
 		border = []
 
-		# TODO: validate
 		while todo:
 			y = todo.pop()
 
@@ -123,30 +100,21 @@ class Board():
 				       	self[k] == color, \
 				       	self.get_neighbors(y)))
 			else:
-				# if any(filter(lambda x: x in area,self.get_neighbors(y))):
 				border.append(y)
 
 		return area,border
 
-	def get_area(self,x):
-		return self.get_area_with_border(x)[0]
-
-	def get_border(self,x):
-		return self.get_area_with_border(x)[1]
-
-
-	def set_color(self,x,c):
+	def set_color(self,a,c):
 		"""
-		set area around `x` to color `c`
+		set area `a` to color `c`
 		"""
 
-		assert x[0]	in xrange(self.height)
-		assert x[1]	in xrange(self.width)
-		assert c   	in xrange(len(self.colors))
+		assert c in xrange(len(self.colors))
 
-		a = self.get_area(x)
-		for i in a:
-			self[i] = c
+		for x,y in a:
+			assert x in xrange(self.height)
+			assert y in xrange(self.width)
+			self[x,y] = c
 
 	def get_complete_area(self,x):
 		"""
@@ -157,7 +125,7 @@ class Board():
 		assert x[1] in xrange(self.width)
 
 		area = copy.deepcopy(self)
-		a,b = area.get_area_with_border(x)
+		a,b = area.get_area({x},self.get_neighbors(x))
 		for i in range(area.height):
 			for j in range(area.width):
 				if (i,j) in a:
@@ -168,19 +136,3 @@ class Board():
 					area[i,j] = None
 		return area
 
-	# DEPRECATED
-
-	def set_color_recursive(self,x,c):
-		"""
-		set area around `x` to color `c`
-		"""
-
-		assert x[0] in xrange(self.height)
-		assert x[1] in xrange(self.width)
-		assert c in xrange(len(self.colors))
-
-		ref    	= self[x]
-		self[x]	= c
-		for i in self.get_neighbors(x):
-			if self[i] == ref:
-				self.set_color_recursive(i,c)

@@ -66,25 +66,27 @@ class Game():
 				# get all that is left
 				rest = [x for x in self.colors if x not in used]
 				# set to one of unused colors
-				self.area.set_color(p.pos,random.choice(rest))
+				self.area.set_color({p.pos},random.choice(rest))
 			# set up start position
-			self.area.set_start(p.pos)
+			a,b = self.area.set_start(p.pos)
+			# set start area/border
+			p.area = a
+			p.border = b
 
 	def command(self,p,c):
 		"""
 		try to fulfill player command
 		"""
-
+		# TODO: update to new Board API
 		assert p in xrange(len(self.players))
 		assert c in self.colors
 
 		# make sure it's player's turn and
 		# chosen color is not used by other players
-		if	p == self.turn and \
-		  	c in self.colors_available(p):
+		if	p == self.turn and c in self.colors_available(p):
 		  	p = self.players[p]
 		  	# set new color
-		  	self.area.set_color(p.pos,c)
+		  	self.area.set_color(p.area,c)
 		  	# go to next turn
 		  	p.update_score()
 		  	self.next_turn()
@@ -99,16 +101,17 @@ class Game():
 		return list of colors available for a player, removes non-bordering as well
 		"""
 		if p == self.turn:
+			p = self.players[p]
 			used = set(self.colors_used())
 			# exclude colors not bordering
-			border = self.area.get_border(self.players[p].pos)
+			_,border = self.area.get_area(p.area,p.border)
 			bordering = set([self[x] for x in border])
-			available = list(set(self.colors) & bordering - used)
+			available = set(self.colors) & bordering - used
 			if available:
 				return available
 			else:
-				# if none left, return all that are not used
-				return list(set(self.colors) - used)
+				# if none left bordering, return all that are not used
+				return set(self.colors) - used
 		else:
 			return []
 
@@ -119,20 +122,24 @@ class Game():
 		"""
 		return list of colors used by players
 		"""
-		# must be a list to deal with duplicates
+		# must be a list to deal with duplicates in `self.set_players()`
 		return [x.color for x in self.players]
 
 	def winner(self):
 		"""
 		return winning player or None
 		"""
-		return next((p for p in self.players if p.score_relative >= 1),None)
+		w = self.game.area.width
+		h = self.game.area.height
+		# win condition
+		wins = lambda p: p.score/(h*w/2) >= 1
+		return next((p for p in self.players if wins(p)),None)
 
 class Player():
 	"""
 	Area player model
 	"""
-
+	# TODO: update to new Board API, don't make player object too smart
 	def __init__(self,name,pos,game):
 		"""
 		create player
@@ -140,9 +147,10 @@ class Player():
 
 		self.name = name
 		self.pos = pos
-		self.game = game	# game player belongs to
+		# self.game = game	# game player belongs to
 		self.score = 0
-		self.area = []
+		self.area = set()
+		self.border = []
 
 	@property
 	def color(self):
@@ -150,16 +158,6 @@ class Player():
 		get player's color in given game
 		"""
 		return self.game[self.pos]
-
-	@property
-	def score_relative(self):
-		"""
-		get score relative to half the board size
-		"""
-		w = self.game.area.width
-		h = self.game.area.height
-		a = self.score
-		return a/(w*h/2.0)
 
 	def update_score(self):
 		# TODO: compute score based on *enclosed* area
