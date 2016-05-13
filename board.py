@@ -40,57 +40,100 @@ class Board():
 		assert x[0] in xrange(self.height), "height coordinate out of bound"
 		assert x[1] in xrange(self.width), "width coordinate out of bound"
 
+		color = self[x]
+		colors = len(self.colors)
 		for i in self.get_neighbors(x):
 			# set immediate neighbors to same color
-			self[i] = self[x]
-			for j in filter(lambda k: k != x,self.get_neighbors(i)):
+			self[i] = color
+			n = filter(lambda k: k != x,self.get_neighbors(i))
+			for j in n:
 				# set 2nd-grade neighbors to different color
-				if self[j] == self[x]:
-					self[j] = (self[j] + 1) % len(self.colors)
+				if self[j] == color:
+					self[j] = (self[j] + 1) % colors
 
 	def get_neighbors(self,x):
 		"""
 		return coordinates of neighbors of `x` as list
 		"""
 
-		assert x[0] in xrange(self.height)
-		assert x[1] in xrange(self.width)
-
 		x,y = x
-		dirs = [[1, 0], [0, 1], [-1, 0], [0, -1]]
-		return [	[x+a,y+b] for a,b in dirs if \
-		        	all([x+a < self.height,y+b < self.width,x+a >= 0,y+b >= 0])]
 
-	def get_area(self,x):
+		assert x in xrange(self.height)
+		assert y in xrange(self.width)
+
+		dirs = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+		return [(x+a,y+b) for a,b in dirs if \
+			all([x+a < self.height,y+b < self.width,x+a >= 0,y+b >= 0])]
+
+	def get_area_with_border(self,x):
 		"""
-		return coordinates of area of `x` and its border
+		return coordinates of area of `x` as set and its border as list
 		"""
 
 		assert x[0] in xrange(self.height)
 		assert x[1] in xrange(self.width)
 
 		# TODO: optimize by saving previous states
-		todo = [x]
-		area = []
+		color = self[x]
+		todo = set([x])
+		area = set()
 		border = []
 
-		while todo != []:
-			y = todo[0]
+		while todo:
+			y = todo.pop()
 
-			area.append(y)
+			area.add(y)
 
 			border +=	filter( \
 			         	lambda k: k not in border and \
-			         	self[k] != self[x], \
+			         	self[k] != color, \
 			         	self.get_neighbors(y))
 
-			todo = todo[1:]
-			todo +=	filter( \
-			       	lambda k: k not in area and k not in todo and \
-			       	self[k] == self[x], \
-			       	self.get_neighbors(y))
+			todo |=	set(filter( \
+			       	lambda k: k not in area and \
+			       	self[k] == color, \
+			       	self.get_neighbors(y)))
 
 		return area,border
+
+	def get_extended_area_with_border(self,a,b):
+		"""
+		return coordinates of superset of `a` and its border, using border `b`
+		"""
+
+		color = self[next(iter(a))] # pick element from `a` nondestructively
+		todo = set(b)
+		area = a
+		border = []
+
+		# TODO: validate
+		while todo:
+			y = todo.pop()
+
+			if self[y] == color:
+				area.add(y)
+
+				border +=	filter( \
+				         	lambda k: k not in border and \
+				         	self[k] != color, \
+				         	self.get_neighbors(y))
+
+				todo |=	set(filter( \
+				       	lambda k: k not in area and \
+				       	self[k] == color, \
+				       	self.get_neighbors(y)))
+			else:
+				# if any(filter(lambda x: x in area,self.get_neighbors(y))):
+				border.append(y)
+
+		return area,border
+
+	def get_area(self,x):
+		return self.get_area_with_border(x)[0]
+
+	def get_border(self,x):
+		return self.get_area_with_border(x)[1]
+
 
 	def set_color(self,x,c):
 		"""
@@ -101,7 +144,7 @@ class Board():
 		assert x[1]	in xrange(self.width)
 		assert c   	in xrange(len(self.colors))
 
-		a,_ = self.get_area(x)
+		a = self.get_area(x)
 		for i in a:
 			self[i] = c
 
@@ -114,12 +157,12 @@ class Board():
 		assert x[1] in xrange(self.width)
 
 		area = copy.deepcopy(self)
-		a,b = area.get_area(x)
+		a,b = area.get_area_with_border(x)
 		for i in range(area.height):
 			for j in range(area.width):
-				if [i,j] in a:
+				if (i,j) in a:
 					area[i,j] = True
-				elif [i,j] in b:
+				elif (i,j) in b:
 					area[i,j] = False
 				else:
 					area[i,j] = None

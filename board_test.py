@@ -37,8 +37,8 @@ def test_board_creation(x,y,l):
 		assert len(a.colors) > 1
 
 @given(	integers(),integers(),\
-       	integers(min_value=2, max_value=100),\
-       	integers(min_value=2, max_value=100),\
+       	integers(min_value=3, max_value=100),\
+       	integers(min_value=3, max_value=100),\
        	lists(integers(),min_size=2,max_size=10))
 def test_set_start_color(p1,p2,x,y,l):
 	"""
@@ -46,7 +46,7 @@ def test_set_start_color(p1,p2,x,y,l):
 	the border around them has different colors
 	"""
 
-	p = [p1,p2]
+	p = (p1,p2)
 	a = board.Board(x,y,l)
 	try:
 		a.set_start(p)
@@ -67,7 +67,7 @@ def test_get_neighbors_count(p1,p2,x,y,l):
 	a cell has at most 4 neighbors
 	"""
 
-	p = [p1,p2]
+	p = (p1,p2)
 	a = board.Board(x,y,l)
 	try:
 		n = a.get_neighbors(p)
@@ -85,11 +85,11 @@ def test_get_area_count(p1,p2,x,y,l):
 	area around cell is not larger than whole board
 	"""
 
-	p = [p1,p2]
+	p = (p1,p2)
 	a = board.Board(x,y,l)
 	try:
 		a.set_start(p)
-		j,k = a.get_area(p)
+		j,k = a.get_area_with_border(p)
 	except AssertionError:
 		assert True
 	else:
@@ -105,11 +105,11 @@ def test_get_area_size(p1,p2,c,x,y,l):
 	area/border display has same size as area/border coordinates
 	"""
 
-	p = [p1,p2]
+	p = (p1,p2)
 	test = board.Board(x,y,l)
 
 	try:
-		a,b = test.get_area(p)
+		a,b = test.get_area_with_border(p)
 		comp = test.get_complete_area(p)
 	except AssertionError:
 		assert True
@@ -124,19 +124,68 @@ def test_get_area_size(p1,p2,c,x,y,l):
        	integers(min_value=2, max_value=100),\
        	integers(min_value=2, max_value=100),\
        	lists(integers(),min_size=2,max_size=10))
-def test_get_area_size(p1,p2,c,x,y,l):
+def test_get_area_leastsize(p1,p2,c,x,y,l):
 	"""
 	coloring an area results in area with at least same size
 	"""
 
-	p = [p1,p2]
+	p = (p1,p2)
 	a = board.Board(x,y,l)
 	try:
-		r1,_ = a.get_area(p)
+		r1 = a.get_area(p)
 
 		a.set_color(p,c)
 	except AssertionError:
 		assert True
 	else:
-		r2,_ = a.get_area(p)
+		r2 = a.get_area(p)
 		assert len(r2) >= len(r1)
+
+
+@given(	integers(),integers(),integers(),\
+       	integers(min_value=2, max_value=100),\
+       	integers(min_value=2, max_value=100),\
+       	lists(integers(),min_size=2,max_size=10))
+def test_get_extended_area_leastsize(p1,p2,c,x,y,l):
+	"""
+	extending an area makes area of at least same size
+	"""
+
+	p = (p1,p2)
+	a = board.Board(x,y,l)
+	try:
+		r1,b1 = a.get_area_with_border(p)
+		a.set_color(p,c)
+	except AssertionError:
+		assert True
+	else:
+		r2,_ = a.get_extended_area_with_border(r1,b1)
+		assert len(r2) >= len(r1)
+
+@given(	integers(),integers(),integers(),\
+       	integers(min_value=2, max_value=100),\
+       	integers(min_value=2, max_value=100),\
+       	lists(integers(),min_size=2,max_size=10))
+def test_get_extended_area_size(p1,p2,c,x,y,l):
+	"""
+	area/border display has same size as extended area/border coordinates
+	"""
+
+	p = (p1,p2)
+	test = board.Board(x,y,l)
+
+	try:
+		i,j = test.get_area_with_border(p)
+		test.set_color(p,c)
+		a,b = test.get_extended_area_with_border(i,j)
+		comp = test.get_complete_area(p)
+	except AssertionError:
+		assert True
+	else:
+		print a
+		print b
+		print comp
+		c = filter(lambda x: x is True,concat(comp.area))
+		assert len(c) == len(a)
+		d = filter(lambda x: x is False,concat(comp.area))
+		assert len(d) == len(b)

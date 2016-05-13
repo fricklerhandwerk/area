@@ -69,8 +69,6 @@ class Game():
 				self.area.set_color(p.pos,random.choice(rest))
 			# set up start position
 			self.area.set_start(p.pos)
-			# set up start score
-			p.score = len(self.area.get_area(p.pos)[0])
 
 	def command(self,p,c):
 		"""
@@ -87,10 +85,8 @@ class Game():
 		  	p = self.players[p]
 		  	# set new color
 		  	self.area.set_color(p.pos,c)
-		  	# update score
-		  	# TODO: compute score based on *enclosed* area
-		  	p.score = len(self.area.get_area(p.pos)[0])
 		  	# go to next turn
+		  	p.update_score()
 		  	self.next_turn()
 		  	# check if game continues or ends
 		  	if self.winner():
@@ -105,7 +101,7 @@ class Game():
 		if p == self.turn:
 			used = set(self.colors_used())
 			# exclude colors not bordering
-			_,border = self.area.get_area(self.players[p].pos)
+			border = self.area.get_border(self.players[p].pos)
 			bordering = set([self[x] for x in border])
 			available = list(set(self.colors) & bordering - used)
 			if available:
@@ -144,8 +140,9 @@ class Player():
 
 		self.name = name
 		self.pos = pos
-		self.score = 0
 		self.game = game	# game player belongs to
+		self.score = 0
+		self.area = []
 
 	@property
 	def color(self):
@@ -154,11 +151,6 @@ class Player():
 		"""
 		return self.game[self.pos]
 
-	def __str__(self):
-		return ' '.join(map(str,[self.name,self.pos,self.score]))
-
-	def __repr__(self):
-		return ','.join(map(repr,[self.name,self.pos,self.score]))
 	@property
 	def score_relative(self):
 		"""
@@ -168,3 +160,17 @@ class Player():
 		h = self.game.area.height
 		a = self.score
 		return a/(w*h/2.0)
+
+	def update_score(self):
+		# TODO: compute score based on *enclosed* area
+		self.score = len(self.game.area.get_area(self.pos))
+
+	def update_area(self):
+		self.area = self.game.area.get_extended_area(self.area)
+
+	def __str__(self):
+		return ' '.join(map(str,[self.name,self.pos,self.score]))
+
+	def __repr__(self):
+		return ','.join(map(repr,[self.name,self.pos,self.score]))
+
