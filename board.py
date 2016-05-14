@@ -120,6 +120,11 @@ class Board():
 			border	list representing border of `area`
 		"""
 
+		# TODO: optimize by
+		#		- using whole areas for `s` instead of just starting positions
+		#		- grow `component` until a cell from `s` is caught
+		#			- then fill `component` *avoiding* `s`, throw it away when done
+		#		- if `s` is never reached, component is enclosed
 		todo = set(b)
 		area = set(a)   	# create copy of `a`
 		border = list(b)	# create copy of `b`
