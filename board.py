@@ -70,39 +70,86 @@ class Board():
 		"""
 		Args:
 			a	set representing existing area
-			b	list representing border of a
+			b	list representing border of `a`
 		Returns:
-			area  	set representing area that contains a
-			border	list representing border of area
+			area  	set representing larger area that contains `a`
+			border	list representing border of `area`
 		NOTE:
 			to get area around single cell, call
 				get_area({x},self.get_neighbors(x))
 		"""
 
-		color = self[next(iter(a))] # pick element from `a` nondestructively
+		assert b != [], "if border empty, area will not be updated"
+
+		# pick element from `a` nondestructively
+		for c in a: color=self[c]; break
 		todo = set(b)
 		area = a
 		border = []
 
 		while todo:
-			y = todo.pop()
+			x = todo.pop()
 
-			if self[y] == color:
-				area.add(y)
+			if self[x] == color:
+				area.add(x)
 
 				border +=	filter( \
 				         	lambda k: k not in border and \
 				         	self[k] != color, \
-				         	self.get_neighbors(y))
+				         	self.get_neighbors(x))
 
 				todo |=	set(filter( \
 				       	lambda k: k not in area and \
 				       	self[k] == color, \
-				       	self.get_neighbors(y)))
+				       	self.get_neighbors(x)))
 			else:
-				border.append(y)
+				border.append(x)
 
 		return area,border
+
+	def get_enclosed_area(self,a,b,s):
+		"""
+		Args:
+			a	set representing an area
+			b	list representing border of `a`
+			s	set of coordinates to reach
+		Returns:
+			area  	set representing area that is enclosed by `a`, i.e.
+			      	all coordinates from which one cannot reach any point in `s`
+			      	without stepping through `a`
+			border	list representing border of `area`
+		"""
+
+		todo = set(b)
+		area = set(a)   	# create copy of `a`
+		border = list(b)	# create copy of `b`
+		components = [] 	# list of enclosed components found
+
+		# check reachability of `s` by picking a border cell
+		while todo:
+			x = todo.pop()
+			# start a new component
+			todo2 = {x}
+			component = set()
+			# fill with neighbors not in original `area` until nothing left
+			while todo2:
+				y = todo2.pop()
+				component.add(y)
+				todo2 |=	set(filter( \
+				        	lambda k: k not in area and k not in component, \
+				        	self.get_neighbors(y)))
+			# if component reaches no one in `s`
+			if not any(map(lambda x: x in component,s)):
+				# add it to enclosed area
+				area |= component
+				# add to list of components, it's faster to color
+				components.append(component)
+				# remove component cells from border
+				border = filter(lambda x: x not in component,border)
+			# shrink search space for next iteration
+			todo -= component
+		return area,border,components
+
 
 	def set_color(self,a,c):
 		"""

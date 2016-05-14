@@ -157,3 +157,28 @@ def test_get_area_twice(p1,p2,x,y,l):
 	else:
 		assert area1 == area2
 		assert set(border1) == set(border2)
+
+@given(	integers(),integers(),integers(min_value=0,max_value=9),\
+       	integers(min_value=2, max_value=100),\
+       	integers(min_value=2, max_value=100),\
+       	lists(integers(),min_size=2,max_size=10))
+def test_enclosed_area(p1,p2,c,x,y,l):
+	"""
+	enclosed area is larger or equal given area, border smaller equal than before,
+	if components exist they are not empty
+	"""
+
+	p = (p1,p2)
+	b = board.Board(x,y,l)
+	try:
+		area1,border1 = b.set_start(p)
+		b.set_color(area1,c)
+	except AssertionError:
+		assert True
+	else:
+		area2,border2 = b.get_area(area1,border1)
+		area3,border3,c = b.get_enclosed_area(area2,border2,{b[x-1,y-1]})
+		assert len(area2) <= len(area3)
+		assert len(border2) >= len(border3)
+		if c:
+			assert len(c[0]) > 0

@@ -10,6 +10,7 @@ class View(wx.Panel):
 	def __init__(self, parent, area):
 		self.area = area
 
+		# TODO: make board view flexibly resizable
 		super(View, self).__init__(parent,size=(self.area.width*CELL,self.area.height*CELL))
 		self.Bind(wx.EVT_PAINT, self.OnPaint)
 
@@ -40,7 +41,7 @@ class Score(wx.Panel):
 		dc = wx.PaintDC(self)
 		x,y = self.GetSize()
 		# draw score bar
-		s = self.player.score_relative
+		s = self.player.score
 		dc.SetBrush(wx.Brush(self.colors[self.player.color]))
 		dc.SetPen(wx.Pen("black",1))
 		dc.DrawRectangle(0,0,min(s*x,x),y)
@@ -62,7 +63,8 @@ class Control(wx.Panel):
 		vbox = wx.BoxSizer(wx.VERTICAL)
 		# remember button IDs and map them to colors
 		self.ids = {}
-		for i in self.game.colors:
+		colors = self.game.colors
+		for i in colors:
 			btn = wx.Panel(self)
 			self.ids[btn.GetId()] = i
 
@@ -80,20 +82,19 @@ class Control(wx.Panel):
 		"""
 		set buttons for a player's turn
 		"""
+		colors = self.game.colors_available(self.player)
 		for i in self.ids:
 			btn = wx.FindWindowById(i)
-			if self.ids[i] in self.game.colors_available(self.player):
+			if self.ids[i] in colors:
 				# show label
-				for c in btn.GetChildren():
-					c.Show()
+				map(lambda x: x.Show(), btn.GetChildren())
 				btn.Bind(wx.EVT_LEFT_UP,self.OnClick)
 				btn.Bind(wx.EVT_ENTER_WINDOW,self.OnEnter)
 				btn.Bind(wx.EVT_LEAVE_WINDOW,self.OnLeave)
 				btn.SetBackgroundColour(self.game.area.colors[self.ids[i]])
 			else:
 				# hide label
-				for c in btn.GetChildren():
-					c.Hide()
+				map(lambda x: x.Hide(), btn.GetChildren())
 				btn.Unbind(wx.EVT_LEFT_UP)
 				btn.Unbind(wx.EVT_ENTER_WINDOW)
 				btn.Unbind(wx.EVT_LEAVE_WINDOW)
@@ -198,6 +199,11 @@ class Window(wx.Frame):
 			pub.unsubAll()
 			self.Close()
 			Window()
+		# TODO: resize properly
+		elif chr(k) == '+':
+			pass
+		elif chr(k) == '-':
+			pass
 		else:
 			pass
 

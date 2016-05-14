@@ -96,12 +96,13 @@ def test_score_values(x,y,l,r):
 	"""
 	g = game.Game(x,y,colors=l)
 	p = g.turn
-	c = g.colors_available(p)[0]
+	c = next(iter(g.colors_available(p)))
 	old_score = g.players[p].score
 	g.command(p,c)
 	new_score = g.players[p].score
+	assert old_score > 0
 	assert old_score <= new_score
-	assert new_score < g.area.width*g.area.height
+
 
 # # turn number always in range of player number
 
