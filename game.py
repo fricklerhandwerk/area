@@ -8,7 +8,7 @@ class Game():
 	"""
 	def __init__(	self, height=28, width=40,\
 	             	colors=["red","green","blue","yellow","magenta"],\
-	             	color_enclosed=False, count_enclosed=True, win_enclosed=True):
+	             	color_enclosed=False, count_enclosed=True, win_enclosed=False):
 
 		"""
 		create game, assume 2 players hard coded
@@ -22,6 +22,9 @@ class Game():
 		# set up board
 		self.area = board.Board(height,width,colors)
 		self.colors = range(len(colors)) # we only need the indices
+
+		## handling of enclosed areas
+		## NOTE: use exactly one for efficiency
 		# color enclosed area immediately
 		self.color_enclosed = color_enclosed
 		# count enclosed area for score
@@ -81,6 +84,7 @@ class Game():
 				self.area.set_color({p.pos},random.choice(rest))
 			# set up start position, assign player's area and color
 			p.area,p.border = self.area.set_start(p.pos)
+		for p in self.players:
 			self.update_player(p)
 
 	def command(self,p,c):
@@ -153,8 +157,7 @@ class Game():
 		"""
 		if self.win_enclosed:
 			# compute based on enclosed area
-			others = map(lambda x: x.pos,filter(lambda x: x != p,self.players))
-			a,_,_ = self.area.get_enclosed_area(p.area,p.border,others)
+			a,_,_ = self.area.get_enclosed_area(p.area,p.border,self.get_other_areas(p))
 			w = self.area.width
 			h = self.area.height
 			return len(a)/(h*w/2.0) >= 1
@@ -174,8 +177,7 @@ class Game():
 		p.area,p.border = self.area.get_area(p.area,p.border)
 		if self.count_enclosed:
 			# compute score from ratio of *enclosed* area and board
-			others = map(lambda x: x.pos,filter(lambda x: x != p,self.players))
-			a,_,_ = self.area.get_enclosed_area(p.area,p.border,others)
+			a,_,_ = self.area.get_enclosed_area(p.area,p.border,self.get_other_areas(p))
 		else:
 			# compute score from ratio of colored area and board
 			a = p.area
@@ -187,14 +189,23 @@ class Game():
 		"""
 		color enclosed components of player `p`'s area
 		"""
-		# positions of other players
-		others = map(lambda x: x.pos,filter(lambda x: x != p,self.players))
 		# update player's area before coloring
 		pa,pb = self.area.get_area(p.area,p.border)
 		# enclosed components
-		p.area,p.border,comps = self.area.get_enclosed_area(pa,pb,others)
+		p.area,p.border,comps = self.area.get_enclosed_area(pa,pb,self.get_other_areas(p))
 		for comp in comps:
 			self.area.set_color(comp,c)
+
+	def get_other_areas(self,p):
+		"""
+		get the area all other players occupy
+		"""
+		# get areas of other players
+		others = map(lambda x: x.area,filter(lambda x: x != p,self.players))
+		# flatten coordinates lists
+		others = [i for a in others for i in a]
+		return set(others)
+
 
 class Player():
 	"""
