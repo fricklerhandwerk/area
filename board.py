@@ -120,15 +120,10 @@ class Board():
 			border	list representing border of `area`
 		"""
 
-		# TODO: optimize by
-		#		- using whole areas for `s` instead of just starting positions
-		#		- grow `component` until a cell from `s` is caught
-		#			- then fill `component` *avoiding* `s`, throw it away when done
-		#		- if `s` is never reached, component is enclosed
-		todo = set(b)
-		area = set(a)   	# create copy of `a`
-		border = list(b)	# create copy of `b`
-		components = [] 	# list of enclosed components found
+		todo = set(b) - s	# drop border cells if they belong to other players
+		area = set(a)    	# create copy of `a`
+		border = list(b) 	# create copy of `b`
+		components = []  	# list of enclosed components found
 
 		# check reachability of `s` by picking a border cell
 		while todo:
@@ -136,15 +131,30 @@ class Board():
 			# start a new component
 			todo2 = {x}
 			component = set()
-			# fill with neighbors not in original `area` until nothing left
+			enclosed = True
+			# fill with neighbors not in original area
+			# until a cell from `s` is caught or `todo2` empty
+			while todo2:
+				y = todo2.pop()
+				component.add(y)
+				n =	set(filter( \
+				   	lambda k: k not in area and k not in component, \
+				   	self.get_neighbors(y)))
+				todo2 |= n
+				# `s` reached
+				if any(map(lambda x: x in s,n)):
+					enclosed = False
+					break
+			# if anything left, fill component avoiding `s`
 			while todo2:
 				y = todo2.pop()
 				component.add(y)
 				todo2 |=	set(filter( \
-				        	lambda k: k not in area and k not in component, \
+				        	lambda k: k not in area and \
+				        	k not in component and \
+				        	k not in s, \
 				        	self.get_neighbors(y)))
-			# if component reaches no one in `s`
-			if not any(map(lambda x: x in component,s)):
+			if enclosed:
 				# add it to enclosed area
 				area |= component
 				# add to list of components, it's faster to color
