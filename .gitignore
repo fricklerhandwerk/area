@@ -3,3 +3,5 @@
 .hypothesis
 .examples
 .cache
+dist
+build
