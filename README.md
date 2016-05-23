@@ -2,6 +2,7 @@
 
 This is a clone of the two-player browser game [Area](http://www.playforia.net/play/classic/area/), written in Python.
 
+![](img/screenshot.png)
 
 # Installation
 
