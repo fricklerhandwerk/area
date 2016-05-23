@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import game
+from area import game
 
 from hypothesis import given, example
 from hypothesis.strategies import integers, randoms, lists

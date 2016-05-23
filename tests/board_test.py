@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import board
+from area import board
 
 from hypothesis import given, example
 from hypothesis.strategies import integers, randoms, lists
