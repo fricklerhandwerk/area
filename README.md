@@ -76,7 +76,7 @@ Also it doesn't have any sounds that indicate which player took the lead. This s
 
 If you don't like to share a mouse or trackpad, just press the according keyboard key to choose a color.
 
-Currently you are only offered colors that are available, so you can't accidentally choose a color that doesn't grow your area. If you are completely surrounded by your oppenent's color, you can choose any other, but naturally it won't increase you score.
+Currently you are only offered colors that are available, so you can't accidentally choose a color that doesn't grow your area. If you are completely surrounded by your oppenent's color, you can choose any other, but naturally it won't increase your score.
 
 ## Score counts enclosed area
 
