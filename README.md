@@ -31,7 +31,7 @@ The latter two are not strictly necessary to run the game if the appropriate lin
 Clone the source to your local file system with
 
 ```
-git clone https://github.com/fricklerhandwerk/area
+git clone https://github.com/frickler01/area
 ```
 
 ### Running
