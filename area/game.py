@@ -118,22 +118,12 @@ class Game():
 
 	def colors_available(self,p):
 		"""
-		return list of colors available for a player, removes non-bordering as well
+		return set of colors available for a player
 		"""
 		if p == self.turn:
-			p = self.players[p]
-			used = set(self.colors_used())
-			# exclude colors not bordering
-			_,border = self.area.get_area(p.area,p.border)
-			bordering = set([self[x] for x in border])
-			available = set(self.colors) & bordering - used
-			if available:
-				return available
-			else:
-				# if none left bordering, return all that are not used
-				return set(self.colors) - used
+			return set(self.colors) - set(self.colors_used())
 		else:
-			return []
+			return set()
 
 	def next_turn(self):
 		self.turn = (self.turn + 1) % len(self.players)
