@@ -3,6 +3,7 @@ from __future__ import division
 import wx
 import game
 from wx.lib.pubsub import pub
+from math import ceil
 
 CELL = 15	# cell drawing size
 
@@ -25,8 +26,8 @@ class View(wx.Panel):
 				dc.SetPen(wx.Pen("black",style=wx.TRANSPARENT))
 				dc.DrawRectangle(	j*x/self.area.width,\
 				                 	i*y/self.area.height,\
-				                 	x/self.area.width,\
-				                 	y/self.area.height)
+				                 	ceil(x/self.area.width),\
+				                 	ceil(y/self.area.height))
 
 class Score(wx.Panel):
 	def __init__(self, parent, player, colors):
