@@ -12,13 +12,14 @@ class View(wx.Panel):
 		self.area = area
 
 		# TODO: make board view flexibly resizable
-		super(View, self).__init__(parent,size=(self.area.width*CELL,self.area.height*CELL))
+		super(View, self).__init__(parent)
 		self.Bind(wx.EVT_PAINT, self.OnPaint)
 
 
 	def OnPaint(self, e):
 		dc = wx.PaintDC(self)
 		x,y = self.GetSize()
+
 		# draw cells
 		for i in range(self.area.height):
 			for j in range(self.area.width):
@@ -127,9 +128,11 @@ class Window(wx.Frame):
 		height = 30
 		colors = ["red","green","blue","yellow","magenta"]
 
+		button_size = height//len(colors)
+
 		# size constraints for nice square buttons
-		assert height/len(colors) * len(colors) == height
-		assert width/(height/len(colors)) * height/len(colors) == width
+		assert button_size * len(colors) == height
+		assert width//button_size * button_size == width
 
 		self.game = game.Game(height,width,colors)
 
@@ -146,7 +149,7 @@ class Window(wx.Frame):
 
 		# arrange everything
 		hbox.Add(self.ctl1,  	1, wx.EXPAND)
-		hbox.Add(self.view,  	width/(height/len(colors)), wx.EXPAND)
+		hbox.Add(self.view,  	width//button_size, wx.EXPAND)
 		hbox.Add(self.ctl2,  	1, wx.EXPAND)
 		vbox.Add(hbox,       	height, wx.EXPAND)
 		vbox.Add(self.score1,	1, wx.EXPAND)
@@ -156,7 +159,9 @@ class Window(wx.Frame):
 		panel.SetSizer(vbox)
 
 		# fit window to content
-		panel.Fit()
+		x = CELL*(width+2*button_size)
+		y = CELL*(height+2)
+		panel.SetSize((x,y))
 		self.Fit()
 
 		self.Bind(wx.EVT_CHAR_HOOK,self.OnPress)
