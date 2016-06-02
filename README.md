@@ -66,7 +66,7 @@ This has some advantages. It loads and runs much faster than the original, which
 
 ## Played offline at one computer
 
-You nead an actual person next to you to play it.
+You need an actual person next to you to play it.
 
 Other than that, the game is somewhat simpler behind the scenes. It doesn't count rounds and a player cannot give up. Just reset the game.
 
@@ -75,8 +75,6 @@ Also it doesn't have any sounds that indicate which player took the lead. This s
 ## Keyboard commands available
 
 If you don't like to share a mouse or trackpad, just press the according keyboard key to choose a color.
-
-Currently you are only offered colors that are available, so you can't accidentally choose a color that doesn't grow your area. If you are completely surrounded by your oppenent's color, you can choose any other, but naturally it won't increase your score.
 
 ## Score counts enclosed area
 
