@@ -136,16 +136,17 @@ class Window(wx.Frame):
 
 		self.game = game.Game(height,width,colors)
 
-		panel = wx.Panel(self)
+		container = wx.Panel(self)
+		layout = wx.Panel(container)
 
 		# controls and game board
 		hbox = wx.BoxSizer(wx.HORIZONTAL)
 		vbox = wx.BoxSizer(wx.VERTICAL)
-		self.ctl1 = Control(panel,self.game,player=0)
-		self.ctl2 = Control(panel,self.game,player=1)
-		self.score1 = Score(panel,self.game.players[0],colors)
-		self.score2 = Score(panel,self.game.players[1],colors)
-		self.view = View(panel,self.game.area)
+		self.ctl1 = Control(layout,self.game,player=0)
+		self.ctl2 = Control(layout,self.game,player=1)
+		self.score1 = Score(layout,self.game.players[0],colors)
+		self.score2 = Score(layout,self.game.players[1],colors)
+		self.view = View(layout,self.game.area)
 
 		# arrange everything
 		hbox.Add(self.ctl1,  	1, wx.EXPAND)
@@ -156,12 +157,24 @@ class Window(wx.Frame):
 		# collapse border separating score bars
 		vbox.Add(self.score2,	1, wx.EXPAND | wx.TOP,-1)
 
-		panel.SetSizer(vbox)
+		layout.SetSizer(vbox)
 
-		# fit window to content
+		# set initial layout size
 		x = CELL*(width+2*button_size)
 		y = CELL*(height+2)
-		panel.SetSize((x,y))
+
+		# container *absoulte size*
+		container.SetSize((x-1,y-1)) # -1 corrects for weird borders
+		# layout *aspect ratio*
+		layout.SetSize((x,y))
+
+		# this sizer captures layout's aspect ratio and keeps it
+		# independently of container's absolute size
+		aspect = wx.GridSizer(1,1)
+		aspect.Add(layout,1, wx.SHAPED | wx.ALIGN_CENTER)
+		container.SetSizer(aspect)
+
+		# fit window around container
 		self.Fit()
 
 		self.Bind(wx.EVT_CHAR_HOOK,self.OnPress)

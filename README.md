@@ -109,10 +109,6 @@ After this in `dist` you will have `Area.app`, which can be distributed and star
 
 # To do
 
-## Window scaling
-
-Scaling the window produces artifacts because of the way the board is drawn. This should be rebuilt such that you can scale the window to any size, but always have square cells (± 1 px) and no artifacts. The score bars should compensate for the window's aspect ratio.
-
 ## Platform-dependent colors
 
 The game uses color identifiers such as "red" or "green", which are subject to interpretation, but easy to read in the source. Also there are no font settings used, hence key strings on buttons appear in the system default font. Therefore the game may look very different on different operating systems or distributions.
