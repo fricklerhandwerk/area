@@ -9,7 +9,7 @@ from setuptools import setup
 
 APP = ['area/gui.py']
 NAME = "Area"
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 DESC = "A simple two-player round-based tactics game"
 LONG_DESC = "Two players occupy board area by changing their field's color. The player who captured more than half the board wins."
 DATA_FILES = []
