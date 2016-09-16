@@ -16,9 +16,9 @@ def uniq(l):
 	[result.append(x) for x in l if x not in result]
 	return result
 
-@given(	integers(min_value=5,max_value=100),\
-       	integers(min_value=5,max_value=100),\
-       	lists(integers(),min_size=3, max_size=100))
+@given(	integers(min_value=5,max_value=50),\
+       	integers(min_value=5,max_value=50),\
+       	lists(integers(),min_size=3, max_size=10))
 def test_set_player_color(x,y,l):
 	"""
 	all players have different starting colors
@@ -26,9 +26,9 @@ def test_set_player_color(x,y,l):
 	g = game.Game(x,y,colors=l)
 	assert uniq([g[x.pos] for x in g.players]) == [g[x.pos] for x in g.players]
 
-@given(	integers(min_value=5,max_value=100),\
-       	integers(min_value=5,max_value=100),\
-       	lists(integers(),min_size=3, max_size=100))
+@given(	integers(min_value=5,max_value=50),\
+       	integers(min_value=5,max_value=50),\
+       	lists(integers(),min_size=3, max_size=10))
 def test_num_colors_used(x,y,l):
 	"""
 	#colors used = #players
@@ -36,9 +36,9 @@ def test_num_colors_used(x,y,l):
 	g = game.Game(x,y,colors=l)
 	assert len(g.colors_used()) == len(g.players)
 
-@given(	integers(min_value=5,max_value=100),\
-       	integers(min_value=5,max_value=100),\
-       	lists(integers(),min_size=3, max_size=100))
+@given(	integers(min_value=5,max_value=50),\
+       	integers(min_value=5,max_value=50),\
+       	lists(integers(),min_size=3, max_size=10))
 def test_start_score(x,y,l):
 	"""
 	all starting scores same
@@ -48,7 +48,7 @@ def test_start_score(x,y,l):
 
 @given(	integers(min_value=5,max_value=20),\
        	integers(min_value=5,max_value=20),\
-       	lists(integers(),min_size=3, max_size=100),\
+       	lists(integers(),min_size=3, max_size=10),\
        	integers(min_value=0,max_value=1),integers(),randoms())
 def test_valid_turn(x,y,l,p,c,r):
 	"""
@@ -74,7 +74,7 @@ def test_valid_turn(x,y,l,p,c,r):
 
 @given(	integers(min_value=5,max_value=20),\
        	integers(min_value=5,max_value=20),\
-       	lists(integers(),min_size=3, max_size=100),\
+       	lists(integers(),min_size=3, max_size=10),\
        	integers(min_value=0,max_value=1),randoms())# def test_valid_turn(x,y,l,p,r):
 def test_num_colors_available(x,y,l,p,r):
 	"""
@@ -84,10 +84,10 @@ def test_num_colors_available(x,y,l,p,r):
 	if p == g.turn:
 		assert 0 < len(g.colors_available(p)) <= len(g.colors) - len(g.players)
 	else:
-		assert g.colors_available(p) == []
+		assert g.colors_available(p) == set()
 
-@given(	integers(min_value=5,max_value=20),\
-       	integers(min_value=5,max_value=20),\
+@given(	integers(min_value=10,max_value=30),\
+       	integers(min_value=10,max_value=30),\
        	lists(integers(),min_size=3, max_size=10),randoms())
 def test_score_values(x,y,l,r):
 	"""

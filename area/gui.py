@@ -2,7 +2,6 @@
 from __future__ import division
 import wx
 import game
-from wx.lib.pubsub import pub
 from math import ceil
 
 CELL = 15	# cell drawing size
@@ -53,6 +52,7 @@ class Control(wx.Panel):
 
 		self.game = game
 		self.player = player
+		self.parent = parent
 		super(Control, self).__init__(parent)
 
 		self.InitButtons()
@@ -104,7 +104,9 @@ class Control(wx.Panel):
 
 	def OnClick(self,e):
 		# change player's color to chosen value
-		self.game.command(self.player,self.ids[e.GetId()])
+		if self.game.command(self.player,self.ids[e.GetId()]):
+			# tell system to refresh if something changed
+			self.parent.NextTurn()
 
 	def OnEnter(self,e):
 		# darken color
@@ -178,21 +180,19 @@ class Window(wx.Frame):
 		self.Fit()
 
 		self.Bind(wx.EVT_CHAR_HOOK,self.OnPress)
-		pub.subscribe(self.NextTurn,"next turn")
-		pub.subscribe(self.Winner,"winner")
 
 		self.SetTitle('Area')
 		self.Centre()
 		self.Show()
 
 	def NextTurn(self):
+		# check if game continues or ends
+		if self.game.winner():
+			self.game.turn = -1 # nobody's turn
+		# refresh viewers
 		self.ctl1.NextTurn()
 		self.ctl2.NextTurn()
 		self.Refresh()
-
-	def Winner(self,winner):
-		self.game.turn = 2
-		self.NextTurn()
 
 	def OnPress(self,e):
 		# TODO: make this less hard coded
@@ -200,22 +200,17 @@ class Window(wx.Frame):
 		if chr(k) in ['1','2','3','4','5']:
 			k = int(chr(k))-1
 			if self.game.command(0,k):
-				self.Refresh()
+				self.NextTurn()
 		elif chr(k) in ['6','7','8','9','0']:
-			k = int(chr(k))
-			if k != 0:
-				k -= 6
-			else:
-				k = 4
-
+			# map key to `range(5)`
+			k = (int(chr(k)) + 4) % 10
 			if self.game.command(1,k):
-				self.Refresh()
+				self.NextTurn()
 		elif k == wx.WXK_ESCAPE:
-			# quite game
+			# quit game
 			self.Close()
 		elif k == wx.WXK_DELETE:
 			# reset game
-			pub.unsubAll()
 			self.Close()
 			Window()
 		# TODO: resize properly
@@ -230,7 +225,6 @@ def main():
 	app = wx.App()
 	Window()
 	app.MainLoop()
-
 
 if __name__ == '__main__':
 	main()

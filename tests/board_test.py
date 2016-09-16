@@ -16,9 +16,9 @@ def uniq(l):
 	[result.append(x) for x in l if x not in result]
 	return result
 
-@given(	integers(min_value=-100, max_value=100),\
-       	integers(min_value=-100, max_value=100),\
-       	lists(integers(),max_size=100))
+@given(	integers(min_value=-50, max_value=50),\
+       	integers(min_value=-50, max_value=50),\
+       	lists(integers(),max_size=20))
 def test_board_creation(x,y,l):
 	"""
 	board is always created with
@@ -37,8 +37,8 @@ def test_board_creation(x,y,l):
 		assert len(a.colors) > 1
 
 @given(	integers(),integers(),\
-       	integers(min_value=3, max_value=100),\
-       	integers(min_value=3, max_value=100),\
+       	integers(min_value=10, max_value=50),\
+       	integers(min_value=10, max_value=50),\
        	lists(integers(),min_size=2,max_size=10))
 def test_set_start_color(p1,p2,x,y,l):
 	"""
@@ -49,16 +49,21 @@ def test_set_start_color(p1,p2,x,y,l):
 	p = (p1,p2)
 	b = board.Board(x,y,l)
 	try:
-		area,border = b.set_start(p)
-	except AssertionError:
+		c = b[p]
+	except IndexError:
 		assert True
 	else:
-		assert all(map(lambda x: b[x] == b[p],area))
-		assert all(map(lambda x: b[x] != b[p],border))
+		try:
+			area,border = b.set_start(p,c)
+		except AssertionError:
+			assert True
+		else:
+			assert all(map(lambda x: b[x] == c,area))
+			assert all(map(lambda x: b[x] != c,border))
 
 @given(	integers(),integers(),\
-       	integers(min_value=1, max_value=100),\
-       	integers(min_value=1, max_value=100),\
+       	integers(min_value=10, max_value=50),\
+       	integers(min_value=10, max_value=50),\
        	lists(integers(),min_size=2,max_size=10))
 def test_get_neighbors_count(p1,p2,x,y,l):
 	"""
@@ -75,8 +80,8 @@ def test_get_neighbors_count(p1,p2,x,y,l):
 		assert len(n) <= 4
 
 @given(	integers(),integers(),\
-       	integers(min_value=2, max_value=100),\
-       	integers(min_value=2, max_value=100),\
+       	integers(min_value=10, max_value=50),\
+       	integers(min_value=10, max_value=50),\
        	lists(integers(),min_size=2,max_size=10))
 def test_get_area_count(p1,p2,x,y,l):
 	"""
@@ -86,16 +91,21 @@ def test_get_area_count(p1,p2,x,y,l):
 	p = (p1,p2)
 	b = board.Board(x,y,l)
 	try:
-		area, border = b.set_start(p)
-	except AssertionError:
+		c = b[p]
+	except IndexError:
 		assert True
 	else:
-		assert len(area) + len(border) <= x*y
-		assert len(area) > 0
+		try:
+			area, border = b.set_start(p,c)
+		except AssertionError:
+			assert True
+		else:
+			assert len(area) + len(border) <= x*y
+			assert len(area) > 0
 
 @given(	integers(),integers(),integers(),\
-       	integers(min_value=2, max_value=100),\
-       	integers(min_value=2, max_value=100),\
+       	integers(min_value=10, max_value=50),\
+       	integers(min_value=10, max_value=50),\
        	lists(integers(),min_size=2,max_size=10))
 def test_get_area_size(p1,p2,c,x,y,l):
 	"""
@@ -106,7 +116,7 @@ def test_get_area_size(p1,p2,c,x,y,l):
 	b = board.Board(x,y,l)
 
 	try:
-		area,border = b.set_start(p)
+		area,border = b.set_start(p,c)
 		comp = b.get_complete_area(p)
 	except AssertionError:
 		assert True
@@ -118,8 +128,8 @@ def test_get_area_size(p1,p2,c,x,y,l):
 
 
 @given(	integers(),integers(),integers(),\
-       	integers(min_value=2, max_value=100),\
-       	integers(min_value=2, max_value=100),\
+       	integers(min_value=10, max_value=50),\
+       	integers(min_value=10, max_value=50),\
        	lists(integers(),min_size=2,max_size=10))
 def test_get_area_after_coloring(p1,p2,c,x,y,l):
 	"""
@@ -129,18 +139,18 @@ def test_get_area_after_coloring(p1,p2,c,x,y,l):
 	p = (p1,p2)
 	b = board.Board(x,y,l)
 	try:
-		area1,border1 = b.set_start(p)
+		area1,border1 = b.set_start(p,c)
 		b.set_color(area1,c)
 	except AssertionError:
 		assert True
 	else:
-		area2,border2 = b.get_area(area1,border1)
+		area2,border2 = b.get_area(area1,border1,c)
 		assert len(area2) >= len(area1)
 
 
 @given(	integers(),integers(),\
-       	integers(min_value=2, max_value=100),\
-       	integers(min_value=2, max_value=100),\
+       	integers(min_value=10, max_value=50),\
+       	integers(min_value=10, max_value=50),\
        	lists(integers(),min_size=2,max_size=10))
 def test_get_area_twice(p1,p2,x,y,l):
 	"""
@@ -150,17 +160,22 @@ def test_get_area_twice(p1,p2,x,y,l):
 	p = (p1,p2)
 	b = board.Board(x,y,l)
 	try:
-		area1,border1 = b.set_start(p)
-		area2,border2 = b.get_area(area1,border1)
-	except AssertionError:
+		c = b[p]
+	except IndexError:
 		assert True
 	else:
-		assert area1 == area2
-		assert set(border1) == set(border2)
+		try:
+			area1,border1 = b.set_start(p,c)
+			area2,border2 = b.get_area(area1,border1,c)
+		except AssertionError:
+			assert True
+		else:
+			assert area1 == area2
+			assert set(border1) == set(border2)
 
 @given(	integers(),integers(),integers(min_value=0,max_value=9),\
-       	integers(min_value=2, max_value=100),\
-       	integers(min_value=2, max_value=100),\
+       	integers(min_value=10, max_value=50),\
+       	integers(min_value=10, max_value=50),\
        	lists(integers(),min_size=2,max_size=10))
 def test_enclosed_area(p1,p2,c,x,y,l):
 	"""
@@ -171,14 +186,17 @@ def test_enclosed_area(p1,p2,c,x,y,l):
 	p = (p1,p2)
 	b = board.Board(x,y,l)
 	try:
-		area1,border1 = b.set_start(p)
+		area1,border1 = b.set_start(p,c)
 		b.set_color(area1,c)
 	except AssertionError:
 		assert True
 	else:
-		area2,border2 = b.get_area(area1,border1)
-		area3,border3,c = b.get_enclosed_area(area2,border2,{b[x-1,y-1]})
+		area2,border2 = b.get_area(area1,border1,c)
+		print b
+		components = b.get_enclosed_area(area2,border2,{b[x-1,y-1]})
+		area3 = area2 | components
+		border3 = border2 - components
 		assert len(area2) <= len(area3)
 		assert len(border2) >= len(border3)
-		if c:
-			assert len(c[0]) > 0
+		if components:
+			assert len(components) > 0

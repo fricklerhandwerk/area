@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 import random, board
-from wx.lib.pubsub import pub
 
 class Game():
 	"""
-	Area game model
+	Area game model with all the rules
 	"""
 	def __init__(	self, height=28, width=40,\
 	             	colors=["red","green","blue","yellow","magenta"],\
@@ -34,12 +33,6 @@ class Game():
 		# NOTE: is implied by `count_enclosed`
 		self.win_enclosed = win_enclosed
 
-		# create players
-		# TODO: generalize to distribute arbitrary number of players evenly
-		self.players = []
-		self.players.append(Player("Player 1",(0,0)))
-		self.players.append(Player("Player 2",(height-1,width-1)))
-
 		# set up players
 		self.set_players()
 
@@ -63,33 +56,28 @@ class Game():
 
 	def set_players(self):
 		"""
-		set up players' start positions
+		set up players' start positions and colors
 		"""
 
-		assert len(self.players) < len(self.colors), "not enough colors available"
+		# create players
+		self.players = []
+		height = self.area.height
+		width = self.area.width
+		# assign unique colors randomly
+		c = random.sample(self.colors,len(self.colors))
+		self.players.append(Player("Player 1",(0,0),c.pop()))
+		self.players.append(Player("Player 2",(height-1,width-1),c.pop()))
 
 		for p in self.players:
-			# initialize color
-			# WARNING: do not remove, very important!
-			p.color = self[p.pos]
-
-			# get other players' colors in use
-			used = self.colors_used()
-			used.remove(p.color)
-			# set different color if already used
-			if p.color in used:
-				# get all that is left
-				rest = [x for x in self.colors if x not in used]
-				# set to one of unused colors
-				self.area.set_color({p.pos},random.choice(rest))
 			# set up start position, assign player's area and color
-			p.area,p.border = self.area.set_start(p.pos)
-		for p in self.players:
+			p.area,p.border = self.area.set_start(p.pos,p.color)
 			self.update_player(p)
 
 	def command(self,p,c):
 		"""
 		try to fulfill player command
+
+		return `True` if game state changed, `False` otherwise
 		"""
 
 		assert p in xrange(len(self.players))
@@ -100,40 +88,77 @@ class Game():
 		if	p == self.turn and c in self.colors_available(p):
 		  	p = self.players[p]
 		  	# set new color to player's area
-		  	self.area.set_color(p.area,c)
-
-			# color enclosed area
-			if self.color_enclosed:
-				self.set_color_enclosed(p,c)
-
-			# update player state
-			self.update_player(p)
-			# go to next turn
-			self.next_turn()
-			# check if game continues or ends
-			if self.winner():
-				pub.sendMessage("winner",winner=self.winner())
-			else:
-				pub.sendMessage("next turn")
+		  	self.color_player(p,c)
+		  	# update player state
+		  	self.update_player(p)
+		  	# go to next turn
+		  	self.next_turn()
+		  	return True
+		else:
+			return False
 
 	def colors_available(self,p):
 		"""
 		return set of colors available for a player
 		"""
 		if p == self.turn:
-			return set(self.colors) - set(self.colors_used())
+			return set(self.colors) - self.colors_used()
 		else:
 			return set()
 
-	def next_turn(self):
-		self.turn = (self.turn + 1) % len(self.players)
-
 	def colors_used(self):
 		"""
-		return list of colors used by players
+		return set of colors used by players
 		"""
-		# must be a list to deal with duplicates in `self.set_players()`
-		return [x.color for x in self.players]
+		return set(x.color for x in self.players)
+
+	def color_player(self,p,c):
+		"""
+		set new color to player's area
+		"""
+
+		self.area.set_color(p.area,c)
+		if self.color_enclosed:
+			# also color enclosed components
+			a,b = self.area.get_area(p.area,p.border,c)
+			comps = self.area.get_enclosed_area(a,b,self.get_other_areas(p))
+			self.area.set_color(comps,c)
+
+	def update_player(self,p):
+		"""
+		after change of game state, update player properties
+		that depend on the game
+
+		we do this here so that `Player` can stay a dumb data structure.
+		otherwise it would need information about board and game.
+		"""
+
+		# update color
+		p.color = self[p.pos]
+		# update area/border/enclosed
+		p.area,p.border = self.area.get_area(p.area,p.border,p.color)
+		p.enclosed = self.area.get_enclosed_area(p.area,p.border,self.get_other_areas(p))
+		# compute score from ratio of area and board
+		a = len(p.area)
+		b = a + len(p.enclosed) # area and enclosed area never intersect
+		w = self.area.width
+		h = self.area.height
+		p.score = a/(h*w/2.0)
+		p.escore = b/(h*w/2.0)
+		if self.count_enclosed:
+			p.score = p.escore
+
+	def get_other_areas(self,p):
+		"""
+		get the area all other players occupy
+		"""
+		# get areas of other players
+		others = (x.area for x in self.players if x != p)
+		# flatten coordinates lists
+		return set(i for a in others for i in a)
+
+	def next_turn(self):
+		self.turn = (self.turn + 1) % len(self.players)
 
 	def winner(self):
 		"""
@@ -146,73 +171,29 @@ class Game():
 		decide if player `p` wins
 		"""
 		if self.win_enclosed:
-			# compute based on enclosed area
-			a,_,_ = self.area.get_enclosed_area(p.area,p.border,self.get_other_areas(p))
-			w = self.area.width
-			h = self.area.height
-			return len(a)/(h*w/2.0) >= 1
+			# based on enclosed area
+			return p.escore >= 1
 		else:
-			# compute based on normal score
+			# based on normal area
 			return p.score >= 1
-
-	def update_player(self,p):
-		"""
-		after change of game state, update player properties
-		that depend on the game
-		"""
-		# we do this here so that `Player` can stay a dumb data structure
-		# update color
-		p.color = self[p.pos]
-		# update area/border
-		p.area,p.border = self.area.get_area(p.area,p.border)
-		if self.count_enclosed:
-			# compute score from ratio of *enclosed* area and board
-			a,_,_ = self.area.get_enclosed_area(p.area,p.border,self.get_other_areas(p))
-		else:
-			# compute score from ratio of colored area and board
-			a = p.area
-		w = self.area.width
-		h = self.area.height
-		p.score = len(a)/(h*w/2.0)
-
-	def set_color_enclosed(self,p,c):
-		"""
-		color enclosed components of player `p`'s area
-		"""
-		# update player's area before coloring
-		pa,pb = self.area.get_area(p.area,p.border)
-		# enclosed components
-		p.area,p.border,comps = self.area.get_enclosed_area(pa,pb,self.get_other_areas(p))
-		for comp in comps:
-			self.area.set_color(comp,c)
-
-	def get_other_areas(self,p):
-		"""
-		get the area all other players occupy
-		"""
-		# get areas of other players
-		others = map(lambda x: x.area,filter(lambda x: x != p,self.players))
-		# flatten coordinates lists
-		others = [i for a in others for i in a]
-		return set(others)
-
 
 class Player():
 	"""
 	Area player model
 	"""
 
-	def __init__(self,name,pos):
+	def __init__(self,name,pos,color):
 		"""
 		create player
 		"""
-
 		self.name = name
 		self.pos = pos
-		self.color = None
+		self.color = color
 		self.score = 0
-		self.area = set()
-		self.border = []
+		self.escore = 0 # include enclosed area
+		self.area = set([pos])
+		self.border = set()
+		self.enclosed = set()
 
 	def __str__(self):
 		return ' '.join(map(str,[self.name,self.pos,self.score]))
