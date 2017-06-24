@@ -1,5 +1,7 @@
 # Area
 
+Two players occupy board area by changing their field's color. The player who captured more than half the board wins.
+
 This is a clone of the two-player browser game [Area](http://www.playforia.net/play/classic/area/), written in Python.
 
 ![](img/screenshot.png)
