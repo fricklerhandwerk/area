@@ -13,8 +13,8 @@ VERSION = "0.2.0"
 DESC = "A simple two-player round-based tactics game"
 LONG_DESC = "Two players occupy board area by changing their field's color. The player who captured more than half the board wins."
 DATA_FILES = []
-OPTIONS =	{
-         		'argv_emulation': True,
+OPTIONS =   {
+                'argv_emulation': True,
                 'iconfile': 'img/icon.icns',
                 'plist':
                 {
@@ -27,7 +27,7 @@ OPTIONS =	{
 
 
 setup(
-	name=NAME,
+    name=NAME,
     app=APP,
     version=VERSION,
     description=DESC,
