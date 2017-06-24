@@ -1,38 +1,41 @@
 # -*- coding: utf-8 -*-
-import random,copy
+import copy
+import random
+
 from tabulate import tabulate
 
-class Board():
+
+class Board(object):
     """
     Area board model with methods to read and manipulate board state
     """
-    def __init__(self,height,width,colors):
+    def __init__(self, height, width, colors):
         """
         create random board with given parameters
         """
 
-        assert len(colors)  > 1, "colors list too short, length must be > 1"
-        assert height       > 0, "height too small, must be > 0"
-        assert width        > 0, "width too small, must be > 0"
+        assert len(colors) > 1, "colors list too short, length must be > 1"
+        assert height > 0, "height too small, must be > 0"
+        assert width > 0, "width too small, must be > 0"
 
         self.height = height
-        self.width  = width
+        self.width = width
         self.colors = colors
-        self.area   = [[random.randrange(len(colors)) for x in range(width)] \
-                        for x in range(height)]
+        self.area = [[random.randrange(len(colors)) for x in range(width)]
+                     for x in range(height)]
 
-    def __getitem__(self,key):
-        x,y = key
+    def __getitem__(self, key):
+        x, y = key
         return self.area[x][y]
 
-    def __setitem__(self,key,value):
-        x,y             = key
+    def __setitem__(self, key, value):
+        x, y = key
         self.area[x][y] = value
 
     def __str__(self):
         return tabulate(self.area)
 
-    def set_start(self,x,color):
+    def set_start(self, x, color):
         """
         set a start point at `x`, return starting area
 
@@ -53,24 +56,28 @@ class Board():
                 # set 2nd-grade neighbors to different color
                 if self[j] == color:
                     self[j] = (self[j] + 1) % colors
-        return self.get_area({x},self.get_neighbors(x),color)
+        return self.get_area({x}, self.get_neighbors(x), color)
 
-    def get_neighbors(self,x):
+    def get_neighbors(self, x):
         """
         return coordinates of neighbors of `x` as list
         """
 
-        x,y = x
+        x, y = x
 
         assert x in xrange(self.height)
         assert y in xrange(self.width)
 
         dirs = [(1, 0), (0, 1), (-1, 0), (0, -1)]
         # only return those inside board
-        return [(x+a,y+b) for a,b in dirs if \
-            all([x+a < self.height,y+b < self.width,x+a >= 0,y+b >= 0])]
+        return [(x + a, y + b) for a, b in dirs if
+                all([x + a < self.height,
+                     y + b < self.width,
+                     x + a >= 0,
+                     y + b >= 0,
+                     ])]
 
-    def get_area(self,area,border,color):
+    def get_area(self, area, border, color):
         """
         grow a given `area` using its `border` such that
         neighboring cells having `color` are incorporated
@@ -108,19 +115,20 @@ class Board():
             if self[x] == color:
                 area.add(x)
 
-                neighbors = filter( lambda k:   k not in border and \
-                                                k not in area,
-                                    self.get_neighbors(x))
+                neighbors = filter(lambda k:
+                                   k not in border and
+                                   k not in area,
+                                   self.get_neighbors(x))
 
-                border |= set(k for k in neighbors if self[k] != color)
+                border |= {k for k in neighbors if self[k] != color}
 
-                todo |= set(k for k in neighbors if self[k] == color)
+                todo |= {k for k in neighbors if self[k] == color}
             else:
                 border.add(x)
 
         return area, border
 
-    def get_enclosed_area(self,area,border,target):
+    def get_enclosed_area(self, area, border, target):
         """
         return coordinates from which `target` cannot be reached without
         going through `area`
@@ -150,9 +158,10 @@ class Board():
             while todo2:
                 y = todo2.pop()
                 component.add(y)
-                neighbors = set(filter( lambda k:   k not in area and \
-                                                    k not in component, \
-                                        self.get_neighbors(y)))
+                neighbors = set(filter(lambda k:
+                                       k not in area and
+                                       k not in component,
+                                       self.get_neighbors(y)))
 
                 todo2 |= neighbors
                 # if `target` reached, component will be discarded
@@ -164,28 +173,29 @@ class Board():
             while todo2:
                 y = todo2.pop()
                 component.add(y)
-                todo2 |=    set(filter( lambda k:   k not in component and \
-                                                    k in border, \
-                                        self.get_neighbors(y)))
+                todo2 |= set(filter(lambda k:
+                                    k not in component and
+                                    k in border,
+                                    self.get_neighbors(y)))
             if enclosed:
                 components |= component
             # shrink search space for next iteration
             todo -= component
         return components
 
-    def set_color(self,area,color):
+    def set_color(self, area, color):
         """
         set `area` to `color`
         """
 
         assert color in xrange(len(self.colors))
 
-        for x,y in area:
+        for x, y in area:
             assert x in xrange(self.height)
             assert y in xrange(self.width)
-            self[x,y] = color
+            self[x, y] = color
 
-    def get_complete_area(self,x):
+    def get_complete_area(self, x):
         """
         return area of coordinate `x` as `True`, border as `False`, `None` else
         """
@@ -194,14 +204,13 @@ class Board():
         assert x[1] in xrange(self.width)
 
         area = copy.deepcopy(self)
-        a,b = area.get_area({x},self.get_neighbors(x),self[x])
+        a, b = area.get_area({x}, self.get_neighbors(x), self[x])
         for i in range(area.height):
             for j in range(area.width):
-                if (i,j) in a:
-                    area[i,j] = True
-                elif (i,j) in b:
-                    area[i,j] = False
+                if (i, j) in a:
+                    area[i, j] = True
+                elif (i, j) in b:
+                    area[i, j] = False
                 else:
-                    area[i,j] = None
+                    area[i, j] = None
         return area
-
