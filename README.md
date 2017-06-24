@@ -12,39 +12,29 @@ This is a clone of the two-player browser game [Area](http://www.playforia.net/p
 
 Download the ready-for-use [release](../../releases) for your operating system.
 
-## Command line
-
-### Dependencies
-
-Install platform-specific dependencies
-
-- Python 2.7
-- wxPython 3.0 (graphical interface)
-
-and with `pip`
-
-- tabulate 0.7 (for debugging output)
-- hypothesis 3.1 (for unit tests)
-
-The latter two are not strictly necessary to run the game if the appropriate lines in the source are commented out.
-
-### Source code
+## Command line (Linux)
 
 Clone the source to your local file system with
 
-```
-git clone https://github.com/frickler01/area
-```
+    git clone https://github.com/fricklerhandwerk/area
 
-### Running
+Install dependencies with
 
-Enter
+    pip install -r requirements.txt ./area
 
-```
-python area/area/gui.py
-```
+and run the game with
 
-to run the game.
+    area
+
+## Command Line (Mac OS)
+
+If you do not use homebrew Python (or don't know what this is), proceed exactly as with Linux.
+
+Otherwise before following Linux instructions install `wxPython` via homebrew with
+
+    brew install wxpython
+
+The reason is that `wxpython` installed via `pip` will require a "framework build" of Python, which homebrew does not provide, preventing you from starting the graphical interface.
 
 
 # Usage
@@ -117,4 +107,4 @@ It may be appropriate to fix appearance with numerical color codes.
 
 ## Packaging and installation on other operating systems
 
-Please submit packaging and installation instructions for common Linux distributions or Windows!
+Please submit packaging and installation instructions for Windows!
