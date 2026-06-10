@@ -43,8 +43,8 @@ class Board(object):
         while the surrounding cells are different
         """
 
-        assert x[0] in xrange(self.height), "height coordinate out of bound"
-        assert x[1] in xrange(self.width), "width coordinate out of bound"
+        assert x[0] in range(self.height), "height coordinate out of bound"
+        assert x[1] in range(self.width), "width coordinate out of bound"
 
         colors = len(self.colors)
         self[x] = color
@@ -65,8 +65,8 @@ class Board(object):
 
         x, y = x
 
-        assert x in xrange(self.height)
-        assert y in xrange(self.width)
+        assert x in range(self.height)
+        assert y in range(self.width)
 
         dirs = [(1, 0), (0, 1), (-1, 0), (0, -1)]
         # only return those inside board
@@ -115,10 +115,8 @@ class Board(object):
             if self[x] == color:
                 area.add(x)
 
-                neighbors = filter(lambda k:
-                                   k not in border and
-                                   k not in area,
-                                   self.get_neighbors(x))
+                neighbors = [k for k in self.get_neighbors(x)
+                             if k not in border and k not in area]
 
                 border |= {k for k in neighbors if self[k] != color}
 
@@ -188,11 +186,11 @@ class Board(object):
         set `area` to `color`
         """
 
-        assert color in xrange(len(self.colors))
+        assert color in range(len(self.colors))
 
         for x, y in area:
-            assert x in xrange(self.height)
-            assert y in xrange(self.width)
+            assert x in range(self.height)
+            assert y in range(self.width)
             self[x, y] = color
 
     def get_complete_area(self, x):
@@ -200,8 +198,8 @@ class Board(object):
         return area of coordinate `x` as `True`, border as `False`, `None` else
         """
 
-        assert x[0] in xrange(self.height)
-        assert x[1] in xrange(self.width)
+        assert x[0] in range(self.height)
+        assert x[1] in range(self.width)
 
         area = copy.deepcopy(self)
         a, b = area.get_area({x}, self.get_neighbors(x), self[x])

@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import division
 
 import game
 import wx
@@ -26,8 +25,8 @@ class View(wx.Panel):
             for j in range(self.area.width):
                 dc.SetBrush(wx.Brush(self.area.colors[self.area[i, j]]))
                 dc.SetPen(wx.Pen("black", style=wx.TRANSPARENT))
-                dc.DrawRectangle(j * x / self.area.width,
-                                 i * y / self.area.height,
+                dc.DrawRectangle(int(j * x / self.area.width),
+                                 int(i * y / self.area.height),
                                  ceil(x / self.area.width),
                                  ceil(y / self.area.height),
                                  )
@@ -49,7 +48,7 @@ class Score(wx.Panel):
         s = self.player.score
         dc.SetBrush(wx.Brush(self.colors[self.player.color]))
         dc.SetPen(wx.Pen("black", 1))
-        dc.DrawRectangle(0, 0, min(s * x, x), y)
+        dc.DrawRectangle(0, 0, int(min(s * x, x)), y)
 
 
 class Control(wx.Panel):
@@ -78,7 +77,7 @@ class Control(wx.Panel):
             # put centered labels
             # WARNING: labels hard coded to hard coded key map
             label = wx.StaticText(btn, 0, label=str((i + 1 + 5 * self.player) % 10))
-            sizer = wx.GridSizer(1, 1)
+            sizer = wx.GridSizer(1, 1, 0, 0)
             sizer.Add(label, 0, wx.ALIGN_CENTER)
             btn.SetSizer(sizer)
 
@@ -178,7 +177,7 @@ class Window(wx.Frame):
 
         # this sizer captures layout's aspect ratio and keeps it
         # independently of container's absolute size
-        aspect = wx.GridSizer(1, 1)
+        aspect = wx.GridSizer(1, 1, 0, 0)
         aspect.Add(layout, 1, wx.SHAPED | wx.ALIGN_CENTER)
         container.SetSizer(aspect)
 
@@ -202,7 +201,7 @@ class Window(wx.Frame):
 
     def OnPress(self, e):
         # TODO: make this less hard coded
-        k = e.GetUniChar()
+        k = e.GetUnicodeKey()
         if chr(k) in ['1', '2', '3', '4', '5']:
             k = int(chr(k)) - 1
             if self.game.command(0, k):

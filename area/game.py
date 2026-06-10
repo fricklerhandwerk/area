@@ -81,7 +81,7 @@ class Game(object):
         return `True` if game state changed, `False` otherwise
         """
 
-        assert p in xrange(len(self.players))
+        assert p in range(len(self.players))
         assert c in self.colors
 
         # make sure it's player's turn and

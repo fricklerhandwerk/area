@@ -192,7 +192,7 @@ def test_enclosed_area(p1,p2,c,x,y,l):
 		assert True
 	else:
 		area2,border2 = b.get_area(area1,border1,c)
-		print b
+		print(b)
 		components = b.get_enclosed_area(area2,border2,{b[x-1,y-1]})
 		area3 = area2 | components
 		border3 = border2 - components
